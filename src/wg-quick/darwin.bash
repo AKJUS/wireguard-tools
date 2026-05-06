@@ -131,14 +131,14 @@ add_if() {
 del_routes() {
 	[[ -n $REAL_INTERFACE ]] || return 0
 	local todelete=( ) destination gateway netif
-	while read -r destination _ _ _ _ netif _; do
+	while read -r destination _ _ netif _; do
 		[[ $netif == "$REAL_INTERFACE" ]] && todelete+=( "$destination" )
 	done < <(netstat -nr -f inet)
 	for destination in "${todelete[@]}"; do
 		cmd route -q -n delete -inet "$destination" >/dev/null || true
 	done
 	todelete=( )
-	while read -r destination gateway _ netif; do
+	while read -r destination gateway _ netif _; do
 		[[ $netif == "$REAL_INTERFACE" || ( $netif == lo* && $gateway == "$REAL_INTERFACE" ) ]] && todelete+=( "$destination" )
 	done < <(netstat -nr -f inet6)
 	for destination in "${todelete[@]}"; do
@@ -177,7 +177,7 @@ set_mtu() {
 		cmd ifconfig "$REAL_INTERFACE" mtu "$MTU"
 		return
 	fi
-	while read -r destination _ _ _ _ netif _; do
+	while read -r destination _ _ netif _; do
 		if [[ $destination == default ]]; then
 			defaultif="$netif"
 			break
